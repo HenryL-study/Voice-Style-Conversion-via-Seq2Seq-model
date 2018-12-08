@@ -1,6 +1,7 @@
 import wave
 import numpy as np
-import matplotlib.pyplot as plt
+import os
+#import matplotlib.pyplot as plt
 
 def read_wav_data(filename):
     '''
@@ -20,14 +21,58 @@ def read_wav_data(filename):
     return wave_data, framerate
 
 
-def wav_show(wave_data, fs):  # 显示出来声音波形
-    time = np.arange(0, len(wave_data)) * (1.0/fs)  # 计算声音的播放时间，单位为秒
+# def wav_show(wave_data, fs):  # 显示出来声音波形
+    #time = np.arange(0, len(wave_data)) * (1.0/fs)  # 计算声音的播放时间，单位为秒
     # 画声音波形
-    plt.plot(time, wave_data)
-    plt.show()
+    #plt.plot(time, wave_data)
+    #plt.show()
 
 
-if(__name__ == '__main__'):
+if __name__ == '__main__':
+    '''
     wave_data, fs = read_wav_data("VCC2TM1/10001.wav")
-    wav_show(wave_data[0], fs)
+    print(wave_data[0])
+    print(type(wave_data[0]))
+    print(wave_data[0].shape)
+    #wav_show(wave_data[0], fs)
     # wav_show(wave_data[1], fs)  # 如果是双声道则保留这一行，否则删掉这一行
+    # process all data
+    '''
+    path = "VCC2SF1/"         #文件夹路径
+    files = os.listdir(path)
+    length = len(files)
+    print(length)
+    train_len = int(0.8*length)      # 计算train valid test 数据集条目数量
+    valid_len = int(0.1*length)
+    test_len = length - train_len - valid_len
+    temp = []
+    smallest_number = 0              # 记录最小值
+    for i in range(train_len):
+        wave_data, fs = read_wav_data(path+files[i])
+        temp.append(wave_data[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
+    train_data = np.array(temp)      # list 转 array
+    temp = []
+    
+    for i in range(valid_len):
+        wave_data, fs = read_wav_data(path+files[i + train_len])
+        temp.append(wave_data[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
+    valid_data = np.array(temp)
+    temp = []
+
+    for i in range(test_len):
+        wave_data, fs = read_wav_data(path+files[i + train_len + valid_len])
+        temp.append(wave_data[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
+    test_data = np.array(temp)
+
+    train_data = train_data - smallest_number
+    valid_data = valid_data - smallest_number
+    test_data = test_data - smallest_number
+
+    np.save(path+"train_data.npy",train_data)
+    np.save(path+"valid_data.npy",valid_data)
+    np.save(path+"test_data.npy",test_data)
+
+
