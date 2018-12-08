@@ -38,41 +38,69 @@ if __name__ == '__main__':
     # wav_show(wave_data[1], fs)  # 如果是双声道则保留这一行，否则删掉这一行
     # process all data
     '''
-    path = "VCC2SF1/"         #文件夹路径
-    files = os.listdir(path)
-    length = len(files)
-    print(length)
+    path1 = "VCC2SF1/"            #文件夹路径
+    path2 = "VCC2SM1/"
+    save_path = "processed_data"  #save 路径
+    files_1 = os.listdir(path1)
+    files_2 = os.listdir(path2)
+    length = len(files_1)
+    #print(length)
     train_len = int(0.8*length)      # 计算train valid test 数据集条目数量
     valid_len = int(0.1*length)
     test_len = length - train_len - valid_len
-    temp = []
+    temp_1 = []
+    temp_2 = []
     smallest_number = 0              # 记录最小值
-    for i in range(train_len):
-        wave_data, fs = read_wav_data(path+files[i])
-        temp.append(wave_data[0])
-        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
-    train_data = np.array(temp)      # list 转 array
-    temp = []
+    largest_number = 0               # 记录最大值
+    for i in range(train_len):       # 记录 train set
+        wave_data_1, fs = read_wav_data(path1+files_1[i])
+        wave_data_2, fs = read_wav_data(path2+files_2[i])
+        temp_1.append(wave_data_1[0])
+        temp_2.append(wave_data_2[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data_1[0]), np.min(wave_data_2[0])])
+        largest_number = np.max([largest_number, np.max(wave_data_1[0]), np.max(wave_data_2[0])])
+    train_data_1 = np.array(temp_1)      # list 转 array
+    train_data_2 = np.array(temp_2)
+    temp_1 = []
+    temp_2 = []
     
-    for i in range(valid_len):
-        wave_data, fs = read_wav_data(path+files[i + train_len])
-        temp.append(wave_data[0])
-        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
-    valid_data = np.array(temp)
-    temp = []
+    for i in range(valid_len):        # 记录 valid set
+        wave_data_1, fs = read_wav_data(path1+files_1[i + train_len])
+        wave_data_2, fs = read_wav_data(path2+files_2[i + train_len])
+        temp_1.append(wave_data_1[0])
+        temp_2.append(wave_data_2[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data_1[0]), np.min(wave_data_2[0])])
+        largest_number = np.max([largest_number, np.max(wave_data_1[0]), np.max(wave_data_2[0])])
+    valid_data_1 = np.array(temp_1)
+    valid_data_2 = np.array(temp_2)
+    temp_1 = []
+    temp_2 = []
 
-    for i in range(test_len):
-        wave_data, fs = read_wav_data(path+files[i + train_len + valid_len])
-        temp.append(wave_data[0])
-        smallest_number = np.min([smallest_number, np.min(wave_data[0])])
-    test_data = np.array(temp)
+    for i in range(test_len):         # 记录 test set
+        wave_data_1, fs = read_wav_data(path1+files_1[i + train_len + valid_len])
+        wave_data_2, fs = read_wav_data(path2+files_2[i + train_len + valid_len])
+        temp_1.append(wave_data_1[0])
+        temp_2.append(wave_data_2[0])
+        smallest_number = np.min([smallest_number, np.min(wave_data_1[0]), np.min(wave_data_2[0])])
+        largest_number = np.max([largest_number, np.max(wave_data_1[0]), np.max(wave_data_2[0])])
+    test_data_1 = np.array(temp_1)
+    test_data_2 = np.array(temp_2)
 
-    train_data = train_data - smallest_number
-    valid_data = valid_data - smallest_number
-    test_data = test_data - smallest_number
+    class_number = largest_number - smallest_number + 1
+    print("class number : ")
+    print(class_number)
+    train_data_1 = train_data_1 - smallest_number
+    train_data_2 = train_data_2 - smallest_number
+    valid_data_1 = valid_data_1 - smallest_number
+    valid_data_2 = valid_data_2 - smallest_number
+    test_data_1 = test_data_1 - smallest_number
+    test_data_2 = test_data_2 - smallest_number
 
-    np.save(path+"train_data.npy",train_data)
-    np.save(path+"valid_data.npy",valid_data)
-    np.save(path+"test_data.npy",test_data)
+    np.save("train_data_1.npy",train_data_1)
+    np.save("train_data_2.npy",train_data_2)
+    np.save("valid_data_1.npy",valid_data_1)
+    np.save("valid_data_2.npy",valid_data_2)
+    np.save("test_data_1.npy",test_data_1)
+    np.save("test_data_2.npy",test_data_2)
 
 
