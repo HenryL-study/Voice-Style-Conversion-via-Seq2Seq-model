@@ -192,8 +192,8 @@ if any(SAVE_MODEL):
 
 for m in LAS:
     m.eval()
-predict = open("predict.txt", 'w')
 idx = 0
+p_outputs = []
 for batch_idx, (inputs, _) in enumerate(tqdm(test_loader)):
     output_padded, encode_lens, last_state = encoder(inputs)
     _, output, _ = decoder(
@@ -210,13 +210,15 @@ for batch_idx, (inputs, _) in enumerate(tqdm(test_loader)):
             blank_symbol = 0
         )
     
-    for i in range(len(inputs)):
-        chrs = "".join(label_map[o] for o in output[i])
-        chrs = chrs.strip()
-        predict.write(str(idx)+','+ chrs +'\n')
-        idx += 1
+    output = output.detach().cpu().numpy()
+    p_outputs.append(output)
+    # for i in range(len(inputs)):
+    #     chrs = "".join(label_map[o] for o in output[i])
+    #     chrs = chrs.strip()
+    #     predict.write(str(idx)+','+ chrs +'\n')
+    #     idx += 1
     #if idx > 1:
     #    break
-
+p_outputs = np.array(p_outputs)
+np.save("predict_data", p_outputs)
 print("Total predict: ", idx)
-predict.close()
