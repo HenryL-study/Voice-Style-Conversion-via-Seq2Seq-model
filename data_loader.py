@@ -26,7 +26,7 @@ def collate_lines_test(data):
     return inputs,targets
 
 class UttDataset(Dataset):
-    def __init__(self, data_path = 'data', data_type = TRAIN):
+    def __init__(self, data_path = 'data/generate/', data_type = TRAIN):
         
         data = np.load(data_path + "/" + names[data_type], encoding='bytes')
         if data_type != TEST:
@@ -43,10 +43,10 @@ class UttDataset(Dataset):
         
 
     def __getitem__(self,i):
-        utt = self.lines[i].to('cuda')
+        utt = self.lines[i]#.to('cuda')
         # utt = torch.transpose(utt, 0, 1)
         if self.labels != None:
-            label = self.labels[i].to('cuda')
+            label = self.labels[i] # .to('cuda')
         else:
             label = None
         return utt, label
@@ -56,11 +56,11 @@ class UttDataset(Dataset):
 
 def getDataloader(batch_size = 64, dev2train = True):
     if dev2train:
-        train_dataset = UttDataset('data', DEV)
+        train_dataset = UttDataset('data/generate/', DEV)
     else:
-        train_dataset = UttDataset('data', TRAIN)
-    dev_dataset = UttDataset('data', DEV)
-    test_dataset = UttDataset('data', TEST)
+        train_dataset = UttDataset('data/generate/', TRAIN)
+    dev_dataset = UttDataset('data/generate/', DEV)
+    test_dataset = UttDataset('data/generate/', TEST)
 
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, collate_fn = collate_lines)
     dev_loader = DataLoader(dev_dataset, shuffle=False, batch_size=4, collate_fn = collate_lines)

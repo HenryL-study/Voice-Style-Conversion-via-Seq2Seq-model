@@ -2,8 +2,8 @@ import numpy as np
 import os
 
 if __name__ == '__main__':
-    path1 = "parameters/VCC2SF1/"   #文件夹路径
-    path2 = "parameters/VCC2SM1/"
+    path1 = "data/parameters/VCC2SF1/"   #文件夹路径
+    path2 = "data/parameters/VCC2SM1/"
     #save_path = "processed_data"  #save 路径
     files_1 = os.listdir(path1)
     files_2 = os.listdir(path2)
@@ -61,17 +61,17 @@ if __name__ == '__main__':
     test_f0_2 = np.array(temp_f02)
 
 
-    np.save("generate/train_data_1.npy",train_data_1)
-    np.save("generate/train_data_2.npy",train_data_2)
-    np.save("generate/valid_data_1.npy",valid_data_1)
-    np.save("generate/valid_data_2.npy",valid_data_2)
-    np.save("generate/test_data_1.npy",test_data_1)
-    np.save("generate/test_data_2.npy",test_data_2)
+    np.save("data/generate/train_data_1.npy",train_data_1)
+    np.save("data/generate/train_data_2.npy",train_data_2)
+    np.save("data/generate/valid_data_1.npy",valid_data_1)
+    np.save("data/generate/valid_data_2.npy",valid_data_2)
+    np.save("data/generate/test_data_1.npy",test_data_1)
+    np.save("data/generate/test_data_2.npy",test_data_2)
     # save ap and f0 for test dataset
-    np.save("generate/test_ap_1.npy",test_ap_1)
-    np.save("generate/test_ap_2.npy",test_ap_2)
-    np.save("generate/test_f0_1.npy",test_f0_1)
-    np.save("generate/test_f0_2.npy",test_f0_2)
+    np.save("data/generate/test_ap_1.npy",test_ap_1)
+    np.save("data/generate/test_ap_2.npy",test_ap_2)
+    np.save("data/generate/test_f0_1.npy",test_f0_1)
+    np.save("data/generate/test_f0_2.npy",test_f0_2)
 
 
 
