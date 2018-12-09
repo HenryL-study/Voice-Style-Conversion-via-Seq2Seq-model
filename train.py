@@ -26,19 +26,20 @@ attention_size = 128
 
 class ER:
     def __init__(self):
-        self.ce = torch.nn.CrossEntropyLoss(reduction = 'elementwise_mean')
+        # self.ce = torch.nn.CrossEntropyLoss(reduction = 'elementwise_mean')
+        self.loss = nn.MSELoss()
 
     def __call__(self, prediction, target):
         return self.forward(prediction, target)
 
     def forward(self, prediction, target):
         # bs = target.size()[0]
-        label_lens = [len(s) for s in target]
-        logits = [p[:label_lens[i],:] for i,p in enumerate(prediction)]
-        logits = torch.cat(logits, dim=0)
-        target = target.view(-1)
-        output = self.ce(logits, target)
-        output = torch.exp(output)
+        # label_lens = [len(s) for s in target]
+        # logits = [p[:label_lens[i],:] for i,p in enumerate(prediction)]
+        # logits = torch.cat(logits, dim=0)
+        # target = target.view(-1)
+        # output = self.ce(logits, target)
+        output = self.loss(prediction, target)
 
         return output
 
