@@ -27,15 +27,14 @@ def collate_lines_test(data):
 
 class UttDataset(Dataset):
     def __init__(self, data_path = 'data/generate/', data_type = TRAIN):
-        
+        end_sys = np.array([[0 for _ in range(40)]])
         data = np.load(data_path + "/" + names[data_type], encoding='bytes')
         if data_type != TEST:
             label = np.load(data_path + "/" + label_names[data_type], encoding='bytes')
-            end_sys = np.array([0 for _ in range(40)])
-            self.labels = [torch.tensor(np.append(l, end_sys), dtype=torch.float) for l in label]
+            self.labels = [torch.tensor(np.concatenate((l, end_sys), axis=0), dtype=torch.float) for l in label]
         else:
             self.labels = None
-        self.lines=[torch.tensor(l, dtype=torch.float) for l in data]
+        self.lines=[torch.tensor(np.concatenate((l, end_sys), axis=0), dtype=torch.float) for l in data]
         
         print("Loaded ", names[data_type])
         print("Total utterances: ", len(self.lines))
@@ -43,10 +42,10 @@ class UttDataset(Dataset):
         
 
     def __getitem__(self,i):
-        utt = self.lines[i]#.to('cuda')
+        utt = self.lines[i].to('cuda')
         # utt = torch.transpose(utt, 0, 1)
         if self.labels != None:
-            label = self.labels[i] # .to('cuda')
+            label = self.labels[i].to('cuda')
         else:
             label = None
         return utt, label

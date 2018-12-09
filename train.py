@@ -9,14 +9,14 @@ from Listen import Listener
 from Attention import Attention, FakeAttention
 from Spell import Speller
 
-BATCH_SIZE = 16
-EPOCH = 2
+BATCH_SIZE = 4
+EPOCH = 1
 MODEL_PATH = "./models"
 LOAD_MODEL = [False, False, False]
 SAVE_MODEL = [True, True, True]
 DEV2TRAIN = False
 PRE_TRAIN = True
-PRE_EPOCH = 10
+PRE_EPOCH = 1
 LOAD_PRE_TRAIN = False
 SAVE_PRE_TRAIN = True
 label_map = idx2chr
@@ -27,7 +27,7 @@ attention_size = 128
 class ER:
     def __init__(self):
         # self.ce = torch.nn.CrossEntropyLoss(reduction = 'elementwise_mean')
-        self.loss = nn.MSELoss()
+        self.loss = torch.nn.MSELoss()
 
     def __call__(self, prediction, target):
         return self.forward(prediction, target)
@@ -58,7 +58,7 @@ train_loader, dev_loader, test_loader = getDataloader(batch_size=BATCH_SIZE, dev
 print("-----------------Loading Finished-------------------------")
 encoder = Listener(
     rnn_hidden_size = listener_size, 
-    dim             = 200, 
+    dim             = 40, 
     useLockDrop     = True
 )
 attention = Attention(
@@ -81,7 +81,7 @@ if any(LOAD_MODEL):
     print("Loading model...")
     for i,m in enumerate(LAS):
         if LOAD_MODEL[i]:
-            m.load_state_dict(torch.load(MODEL_PATH + '/params-' + str(i) + '-30.pkl'))
+            m.load_state_dict(torch.load(MODEL_PATH + '/params-' + str(i) + '-10.pkl'))
 
 if PRE_TRAIN:
     print("Start pre-training...")
@@ -90,7 +90,7 @@ if PRE_TRAIN:
         print("Loading pre model...")
         decoder.load_state_dict(torch.load(MODEL_PATH + '/params-pre-10.pkl'))
     fake_att = FakeAttention()
-    optimizer = torch.optim.Adam(decoder.parameters(), lr = 0.00005, weight_decay=1.2e-6)
+    optimizer = torch.optim.Adam(decoder.parameters(), lr = 0.0001, weight_decay=1.2e-6)
     for i in range(PRE_EPOCH):
         total_loss = torch.tensor([0.0])
         num_idx = 0
@@ -109,7 +109,7 @@ if PRE_TRAIN:
                 max_iters = None, 
                 attention = fake_att, 
                 batch_size = targets.size()[0], 
-                trancripts= targets, 
+                trancripts= targets[:,:-1, :], 
                 has_trans = True,
                 greedy_sample = True, 
                 teacher_force_rate=0.8, 
@@ -123,7 +123,7 @@ if PRE_TRAIN:
 
             total_loss += loss.cpu()
             num_idx += len(inputs)
-            if batch_num%5 == 0:
+            if batch_num%1 == 0:
                 print(batch_num, "th loss: ", total_loss.item()/num_idx)
             # if batch_num != 0 and batch_num%200 == 0:
             #     test_l_loss(i, batch_num, decoder)
@@ -131,10 +131,10 @@ if PRE_TRAIN:
         print(i, "th epoch loss: ", total_loss.item()/num_idx)
     if SAVE_PRE_TRAIN:
         print("Saving pre model...")
-        torch.save(decoder.state_dict(), MODEL_PATH + '/params-pre-10.pkl')
+        torch.save(decoder.state_dict(), MODEL_PATH + '/params-pre-15.pkl')
 # Training---------------------------------------------------------------------------------
 parameters = [p for model in LAS for p in model.parameters()]
-optimizer = torch.optim.Adam(parameters, lr = 0.00005, weight_decay=1.2e-6)
+optimizer = torch.optim.Adam(parameters, lr = 0.0001, weight_decay=1.2e-6)
 # optimizer = torch.optim.RMSprop(parameters, lr = 0.00005, weight_decay=1.2e-6)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, threshold=0.01, verbose=True)
 loss_func = ER()
@@ -156,7 +156,7 @@ for i in range(EPOCH):
                 max_iters = None, 
                 attention = attention, 
                 batch_size = targets.size()[0],
-                trancripts= targets, 
+                trancripts= targets[:,:-1, :], 
                 has_trans = True,
                 greedy_sample = True, 
                 teacher_force_rate=0.8, 
@@ -176,20 +176,46 @@ for i in range(EPOCH):
         #         fig1.append(s[0,:])
         #     fig1 = torch.stack(fig1, 0).cpu().detach().t().numpy()
         #     np.save("att" + str(batch_num) + ".npy", fig1)
-        if batch_num%200 == 0:
+        if batch_num%1 == 0:
             print(batch_num, "th loss: ", total_loss.item()/num_idx)
-        # if batch_num != 0 and batch_num%200 == 0:
-        #     del output, _, loss, scores
-        #     test_l_loss(i, batch_num, encoder, attention, decoder)
+    
+    total_loss = torch.tensor([0.0])
+    num_idx = 0
+    for batch_num, (inputs, targets) in enumerate(dev_loader):
+        # print("batch_num: ", batch_num)
+        # print("inputs lenth: ", len(inputs))
+        # print("targets lenth: ", len(targets))
+        optimizer.zero_grad()
+        
+        output_padded, encode_lens, last_state = encoder(inputs)
+        output, _, scores = decoder(
+                listener_state = output_padded, 
+                listener_len = encode_lens, 
+                listener_last_state = last_state,
+                max_iters = None, 
+                attention = attention, 
+                batch_size = targets.size()[0],
+                trancripts= targets[:,:-1, :], 
+                has_trans = True,
+                greedy_sample = True, 
+                teacher_force_rate=0.8, 
+                blank_symbol = 0
+            )
 
-    print(i, "th epoch loss: ", total_loss.item()/num_idx)
+        loss = loss_func(output, targets)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.cpu()
+        num_idx += len(inputs)
+
+    print(i, "th epoch val loss: ", total_loss.item()/num_idx)
     # test_l_loss(i, batch_num, encoder, attention, decoder)
 
 if any(SAVE_MODEL):
     print("Saving model...")
     for i,m in enumerate(LAS):
         if SAVE_MODEL[i]:
-            torch.save(m.state_dict(), MODEL_PATH + '/params-' + str(i) + '-32.pkl')
+            torch.save(m.state_dict(), MODEL_PATH + '/params-' + str(i) + '-10.pkl')
 
 for m in LAS:
     m.eval()
@@ -213,6 +239,7 @@ for batch_idx, (inputs, _) in enumerate(tqdm(test_loader)):
     
     output = output.detach().cpu().numpy()
     p_outputs.append(output)
+    idx += 1
     # for i in range(len(inputs)):
     #     chrs = "".join(label_map[o] for o in output[i])
     #     chrs = chrs.strip()

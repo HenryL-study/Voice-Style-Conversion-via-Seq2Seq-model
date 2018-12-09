@@ -8,7 +8,7 @@ from torch.autograd import Variable
 from LockedDropout import LockedDropout
 
 class Listener(nn.Module):
-    def __init__(self, rnn_hidden_size = 256, dim = 200, useLockDrop = False):
+    def __init__(self, rnn_hidden_size = 256, dim = 40, useLockDrop = False):
         super().__init__()
                 
         # self.lockdrop1 = LockedDropout(0.2)

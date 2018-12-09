@@ -22,7 +22,7 @@ class Speller(nn.Module):
         self.out = nn.Linear(256, class_size)
         # self.out.weight = self.embedding.weight.t()
         # print("Output weight size: ", self.out.weight.size())
-        self.arnn = nn.LSTMCell(rnn_hidden_size + context_size, rnn_hidden_size)
+        self.arnn = nn.LSTMCell(class_size + context_size, rnn_hidden_size)
         self.rnn1 = nn.LSTMCell(rnn_hidden_size, rnn_hidden_size)
         self.rnn2 = nn.LSTMCell(rnn_hidden_size, rnn_hidden_size)
     
@@ -50,12 +50,13 @@ class Speller(nn.Module):
                 raise NotImplementedError
             else:
                 current_embed = current_word # self.embedding(current_word)
+                # print(current_embed.size())
                 _, predict_output, speller_state, att_score = self.run_once(attention, listener_state, listener_len, speller_state, current_embed, batch_size)
                 # record score
                 raw_predict_output.append(predict_output)
                 attention_scores.append(att_score)
                 if train_flag and random.random() < teacher_force_rate and step+1<max_iters:
-                    current_word = trancripts[:, step]
+                    current_word = trancripts[:, step, :]
                 else:
                     current_word = predict_output #torch.argmax(predict_output, dim=1)
 
