@@ -11,7 +11,7 @@ from bisect import bisect_left
 import random
 
 class Speller(nn.Module):
-    def __init__(self, context_size = 128, rnn_hidden_size = 256, class_size = 33, useLockDrop = False):
+    def __init__(self, context_size = 128, rnn_hidden_size = 256, class_size = 64969, useLockDrop = False):
         super().__init__()
         self.class_size = class_size
         self.rnn_hidden_size = rnn_hidden_size

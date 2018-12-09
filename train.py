@@ -57,8 +57,9 @@ train_loader, dev_loader, test_loader = getDataloader(batch_size=BATCH_SIZE, dev
 print("-----------------Loading Finished-------------------------")
 encoder = Listener(
     rnn_hidden_size = listener_size, 
-    dim             = 40, 
-    useLockDrop     = True
+    dim             = 200, 
+    useLockDrop     = True,
+    class_size = 64970
 )
 attention = Attention(
     attention_size  = attention_size, 
@@ -68,7 +69,7 @@ attention = Attention(
 decoder = Speller(
     context_size    = attention_size, 
     rnn_hidden_size = speller_size, 
-    class_size      = 33, 
+    class_size      = 64970, 
     useLockDrop     = False
 )
 

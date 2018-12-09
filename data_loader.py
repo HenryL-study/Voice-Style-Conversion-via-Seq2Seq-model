@@ -7,8 +7,8 @@ from torch.nn.utils.rnn import pad_sequence
 TRAIN = 0
 DEV = 1
 TEST = 2
-names = ["train.npy", "dev.npy", "test.npy"]
-label_names = ["idx_train_transcripts.npy", "idx_dev_transcripts.npy"]
+names = ["train_data_1.npy", "valid_data_1.npy", "test_data_1.npy"]
+label_names = ["train_data_2.npy", "valid_data_2.npy"]
 
 def collate_lines(data):
     inputs,targets = [d[0] for d in data], [d[1] for d in data]
@@ -63,13 +63,13 @@ def getDataloader(batch_size = 64, dev2train = True):
     test_dataset = UttDataset('data', TEST)
 
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, collate_fn = collate_lines)
-    dev_loader = DataLoader(dev_dataset, shuffle=False, batch_size=16, collate_fn = collate_lines)
+    dev_loader = DataLoader(dev_dataset, shuffle=False, batch_size=4, collate_fn = collate_lines)
     test_loader = DataLoader(test_dataset, shuffle=False, batch_size=1, collate_fn = collate_lines_test)
 
     return train_loader, dev_loader, test_loader
 
 
-# a,b,c = getDataloader()
+# a,b,c = getDataloader(dev2train = False)
 
 # for batch_num, (inputs, targets) in enumerate(b):
 #     print("batch_num: ", batch_num)
