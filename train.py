@@ -58,8 +58,7 @@ print("-----------------Loading Finished-------------------------")
 encoder = Listener(
     rnn_hidden_size = listener_size, 
     dim             = 200, 
-    useLockDrop     = True,
-    class_size = 64970
+    useLockDrop     = True
 )
 attention = Attention(
     attention_size  = attention_size, 
@@ -69,7 +68,7 @@ attention = Attention(
 decoder = Speller(
     context_size    = attention_size, 
     rnn_hidden_size = speller_size, 
-    class_size      = 64970, 
+    class_size      = 40, 
     useLockDrop     = False
 )
 
@@ -201,12 +200,12 @@ for batch_idx, (inputs, _) in enumerate(tqdm(test_loader)):
             listener_state = output_padded, 
             listener_len = encode_lens, 
             listener_last_state = last_state,
-            max_iters = 200, 
+            max_iters = 2000, 
             attention = attention, 
             batch_size = len(inputs),
             trancripts= None, 
             has_trans = False,
-            greedy_sample = False, 
+            greedy_sample = True, 
             teacher_force_rate=0.8, 
             blank_symbol = 0
         )

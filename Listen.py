@@ -8,7 +8,7 @@ from torch.autograd import Variable
 from LockedDropout import LockedDropout
 
 class Listener(nn.Module):
-    def __init__(self, rnn_hidden_size = 256, dim = 200, useLockDrop = False, class_size = 64969):
+    def __init__(self, rnn_hidden_size = 256, dim = 200, useLockDrop = False):
         super().__init__()
                 
         # self.lockdrop1 = LockedDropout(0.2)
@@ -16,7 +16,7 @@ class Listener(nn.Module):
         self.lockdrop3 = LockedDropout(0.3)
         self.useLockDrop = useLockDrop
         self.bn = nn.BatchNorm1d(dim)
-        self.embed = nn.Embedding(class_size, dim)
+        # self.embed = nn.Embedding(class_size, dim)
 
         self.LSTM1 = nn.LSTM(input_size=dim, hidden_size=rnn_hidden_size, num_layers=1, bidirectional=True)
         # self.mid_embed1 = getMidcnn()
@@ -30,8 +30,8 @@ class Listener(nn.Module):
         '''
         features : B*L
         '''
-        features = features.unsqueeze_(2)  # B*L*1
-        features = self.embed(features)    # B*L*200
+        # features = features.unsqueeze_(2)  # B*L*1
+        # features = self.embed(features)    # B*L*200
         # batch_size = len(features)
         lens = [len(s) for s in features] # lens of all lines (already sorted)
 
