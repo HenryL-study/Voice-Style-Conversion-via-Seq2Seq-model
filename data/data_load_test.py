@@ -7,10 +7,11 @@ def read_wav_data(filename):
     '''
     读取一个wav文件，返回声音信号的时域谱矩阵和播放时间
     '''
+    #print(filename)
     wav = wave.open(filename, "rb")  # 打开一个wav格式的声音文件流
     num_frame = wav.getnframes()  # 获取帧数
     num_channel = wav.getnchannels()  # 获取声道数
-    framerate = wav.getframerate()  # 获取帧速率 - 22050
+    framerate = wav.getframerate()  # 获取帧速率
     num_sample_width = wav.getsampwidth()  # 获取实例的比特宽度，即每一帧的字节数
     str_data = wav.readframes(num_frame)  # 读取全部的帧
     wav.close()  # 关闭流
@@ -38,9 +39,9 @@ if __name__ == '__main__':
     # wav_show(wave_data[1], fs)  # 如果是双声道则保留这一行，否则删掉这一行
     # process all data
     '''
-    path1 = "data/VCC2SF1/"            #文件夹路径
-    path2 = "data/VCC2SM1/"
-    # save_path = "processed_data"  #save 路径
+    path1 = "generate/VCC2SF1/"            #文件夹路径
+    path2 = "generate/VCC2SM1/"
+    save_path = "processed_data"  #save 路径
     files_1 = os.listdir(path1)
     files_2 = os.listdir(path2)
     length = len(files_1)
@@ -53,6 +54,7 @@ if __name__ == '__main__':
     smallest_number = 0              # 记录最小值
     largest_number = 0               # 记录最大值
     for i in range(train_len):       # 记录 train set
+        print(files_1[i])
         wave_data_1, fs = read_wav_data(path1+files_1[i])
         wave_data_2, fs = read_wav_data(path2+files_2[i])
         temp_1.append(wave_data_1[0])
@@ -86,21 +88,25 @@ if __name__ == '__main__':
     test_data_1 = np.array(temp_1)
     test_data_2 = np.array(temp_2)
 
+    print("largest number:")
+    print(largest_number)
+    print("smallest number:")
+    print(smallest_number)
     class_number = largest_number - smallest_number + 1
     print("class number : ")
     print(class_number)
-    train_data_1 = train_data_1 - smallest_number + 1
-    train_data_2 = train_data_2 - smallest_number + 1
-    valid_data_1 = valid_data_1 - smallest_number + 1
-    valid_data_2 = valid_data_2 - smallest_number + 1
-    test_data_1 = test_data_1 - smallest_number + 1
-    test_data_2 = test_data_2 - smallest_number + 1
+    # train_data_1 = train_data_1 - smallest_number
+    # train_data_2 = train_data_2 - smallest_number
+    # valid_data_1 = valid_data_1 - smallest_number
+    # valid_data_2 = valid_data_2 - smallest_number
+    # test_data_1 = test_data_1 - smallest_number
+    # test_data_2 = test_data_2 - smallest_number
 
-    np.save("data/train_data_1.npy",train_data_1)
-    np.save("data/train_data_2.npy",train_data_2)
-    np.save("data/valid_data_1.npy",valid_data_1)
-    np.save("data/valid_data_2.npy",valid_data_2)
-    np.save("data/test_data_1.npy",test_data_1)
-    np.save("data/test_data_2.npy",test_data_2)
+    np.save("train_data_1.npy",train_data_1)
+    np.save("train_data_2.npy",train_data_2)
+    np.save("valid_data_1.npy",valid_data_1)
+    np.save("valid_data_2.npy",valid_data_2)
+    np.save("test_data_1.npy",test_data_1)
+    np.save("test_data_2.npy",test_data_2)
 
 

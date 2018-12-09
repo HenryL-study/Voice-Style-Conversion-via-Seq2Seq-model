@@ -34,19 +34,48 @@ def world_decode_spectral_envelop(coded_sp, fs):
     decoded_sp = pyworld.decode_spectral_envelope(coded_sp, fs, fftlen)
     return decoded_sp
 
-wav_file = "data/VCC2SF1/10001.wav"
-sampling_rate, num_mcep, frame_period=22050, 40, 5
+path1 = "VCC2SF1/"
+path2 = "VCC2SM1/"
+files_1 = os.listdir(path1)
+files_2 = os.listdir(path2)
+#wav_file = "VCC2SF1/10001.wav"
+length = len(files_1)
+for i in range(78,79): 
+    print("Iteration ", i)
+    sampling_rate, num_mcep, frame_period=22050, 40, 5
 
-wav, _ = librosa.load(wav_file, sr=sampling_rate, mono=True)
-f0, timeaxis, sp, ap = world_decompose(wav=wav, fs=sampling_rate, frame_period=frame_period)
-# f0_converted = pitch_conversion(f0=f0, 
-#                 mean_log_src=test_loader.logf0s_mean_src, std_log_src=test_loader.logf0s_std_src, 
-#                 mean_log_target=test_loader.logf0s_mean_trg, std_log_target=test_loader.logf0s_std_trg)
-coded_sp = world_encode_spectral_envelop(sp=sp, fs=sampling_rate, dim=num_mcep)
-print("This is the feature we want -> coded_sp")
-print("Type of coded_sp: ", type(coded_sp))
-print("shape of coded_sp: ", coded_sp.shape)
-wav_transformed = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
+    wav, _ = librosa.load(path1+files_1[i], sr=sampling_rate, mono=True)
+    f0, timeaxis, sp, ap = world_decompose(wav=wav, fs=sampling_rate, frame_period=frame_period)
+    # f0_converted = pitch_conversion(f0=f0, 
+    #                 mean_log_src=test_loader.logf0s_mean_src, std_log_src=test_loader.logf0s_std_src, 
+    #                 mean_log_target=test_loader.logf0s_mean_trg, std_log_target=test_loader.logf0s_std_trg)
+    coded_sp = world_encode_spectral_envelop(sp=sp, fs=sampling_rate, dim=num_mcep)
+    print("This is the feature we want -> coded_sp")
+    print("Type of coded_sp: ", type(coded_sp))
+    print("shape of coded_sp: ", coded_sp.shape)
+    np.save("parameters/VCC2SF1/coded_sp/"+str(i)+".npy", coded_sp)
+    np.save("parameters/VCC2SF1/f0/"+str(i)+".npy", f0)
+    np.save("parameters/VCC2SF1/ap/"+str(i)+".npy", ap)
+
+    #print("ap: ", ap)
+    wav_transformed = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
                                                     ap=ap, fs=sampling_rate, frame_period=frame_period)
-librosa.output.write_wav("data/generate/10001.wav", wav_transformed, sampling_rate)
-                                
+    librosa.output.write_wav("generate/"+path1+files_1[i], wav_transformed, sampling_rate)
+
+    sampling_rate, num_mcep, frame_period=22050, 40, 5
+
+    wav, _ = librosa.load(path2+files_2[i], sr=sampling_rate, mono=True)
+    f0, timeaxis, sp, ap = world_decompose(wav=wav, fs=sampling_rate, frame_period=frame_period)
+    # f0_converted = pitch_conversion(f0=f0, 
+    #                 mean_log_src=test_loader.logf0s_mean_src, std_log_src=test_loader.logf0s_std_src, 
+    #                 mean_log_target=test_loader.logf0s_mean_trg, std_log_target=test_loader.logf0s_std_trg)
+    coded_sp = world_encode_spectral_envelop(sp=sp, fs=sampling_rate, dim=num_mcep)
+    print("This is the feature we want -> coded_sp")
+    print("Type of coded_sp: ", type(coded_sp))
+    print("shape of coded_sp: ", coded_sp.shape)
+    np.save("parameters/VCC2SM1/coded_sp/"+str(i)+".npy", coded_sp)
+    np.save("parameters/VCC2SM1/f0/"+str(i)+".npy", f0)
+    np.save("parameters/VCC2SM1/ap/"+str(i)+".npy", ap)
+    wav_transformed = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
+                                                    ap=ap, fs=sampling_rate, frame_period=frame_period)
+    librosa.output.write_wav("generate/"+path2+files_2[i], wav_transformed, sampling_rate)                           
