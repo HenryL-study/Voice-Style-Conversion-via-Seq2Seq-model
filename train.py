@@ -26,19 +26,20 @@ attention_size = 128
 
 class ER:
     def __init__(self):
-        self.ce = torch.nn.CrossEntropyLoss(reduction = 'elementwise_mean')
+        # self.ce = torch.nn.CrossEntropyLoss(reduction = 'elementwise_mean')
+        self.loss = nn.MSELoss()
 
     def __call__(self, prediction, target):
         return self.forward(prediction, target)
 
     def forward(self, prediction, target):
         # bs = target.size()[0]
-        label_lens = [len(s) for s in target]
-        logits = [p[:label_lens[i],:] for i,p in enumerate(prediction)]
-        logits = torch.cat(logits, dim=0)
-        target = target.view(-1)
-        output = self.ce(logits, target)
-        output = torch.exp(output)
+        # label_lens = [len(s) for s in target]
+        # logits = [p[:label_lens[i],:] for i,p in enumerate(prediction)]
+        # logits = torch.cat(logits, dim=0)
+        # target = target.view(-1)
+        # output = self.ce(logits, target)
+        output = self.loss(prediction, target)
 
         return output
 
@@ -58,8 +59,7 @@ print("-----------------Loading Finished-------------------------")
 encoder = Listener(
     rnn_hidden_size = listener_size, 
     dim             = 200, 
-    useLockDrop     = True,
-    class_size = 64970
+    useLockDrop     = True
 )
 attention = Attention(
     attention_size  = attention_size, 
@@ -69,7 +69,7 @@ attention = Attention(
 decoder = Speller(
     context_size    = attention_size, 
     rnn_hidden_size = speller_size, 
-    class_size      = 64970, 
+    class_size      = 40, 
     useLockDrop     = False
 )
 
@@ -201,12 +201,12 @@ for batch_idx, (inputs, _) in enumerate(tqdm(test_loader)):
             listener_state = output_padded, 
             listener_len = encode_lens, 
             listener_last_state = last_state,
-            max_iters = 200, 
+            max_iters = 2000, 
             attention = attention, 
             batch_size = len(inputs),
             trancripts= None, 
             has_trans = False,
-            greedy_sample = False, 
+            greedy_sample = True, 
             teacher_force_rate=0.8, 
             blank_symbol = 0
         )

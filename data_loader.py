@@ -31,8 +31,8 @@ class UttDataset(Dataset):
         data = np.load(data_path + "/" + names[data_type], encoding='bytes')
         if data_type != TEST:
             label = np.load(data_path + "/" + label_names[data_type], encoding='bytes')
-            end_sys = np.array([0])
-            self.labels = [torch.tensor(np.append(l, end_sys), dtype=torch.long) for l in label]
+            end_sys = np.array([0 for _ in range(40)])
+            self.labels = [torch.tensor(np.append(l, end_sys), dtype=torch.float) for l in label]
         else:
             self.labels = None
         self.lines=[torch.tensor(l, dtype=torch.float) for l in data]

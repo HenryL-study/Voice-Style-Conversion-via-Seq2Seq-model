@@ -11,12 +11,12 @@ from bisect import bisect_left
 import random
 
 class Speller(nn.Module):
-    def __init__(self, context_size = 128, rnn_hidden_size = 256, class_size = 64969, useLockDrop = False):
+    def __init__(self, context_size = 128, rnn_hidden_size = 256, class_size = 40, useLockDrop = False):
         super().__init__()
         self.class_size = class_size
         self.rnn_hidden_size = rnn_hidden_size
         self.layers = 3
-        self.embedding = nn.Embedding(class_size, rnn_hidden_size)
+        # self.embedding = nn.Embedding(class_size, rnn_hidden_size)
         self.outfc = nn.Linear(rnn_hidden_size + context_size, 256)
         self.a = nn.LeakyReLU(negative_slope=0.2)
         self.out = nn.Linear(256, class_size)
@@ -40,40 +40,16 @@ class Speller(nn.Module):
         predict_seq = []
         attention_scores = []
         speller_state = self.get_initial(batch_size, listener_last_state)
-        current_word = torch.zeros((batch_size,), dtype = torch.long).cuda() # <start>
+        current_word = torch.zeros((batch_size, self.class_size), dtype = torch.float).cuda() # <start>
         if not greedy_sample: 
             predict_seq = [[[torch.zeros((batch_size,), dtype = torch.long).cuda()], self.get_initial(batch_size, listener_last_state), 1] for _ in range(beam_size)]
         for step in range(max_iters):
             #print(step)
             if not greedy_sample:
-                # Beam search for inference
-                # Beam Size = 20
-                new_predict_seq = []
-                for bid in range(beam_size):
-                    beam_seq, my_speller_state, score = predict_seq[bid]
-                    current_word = beam_seq[-1]
-                    #if bid == 0:
-                    #    print(beam_seq[-1].item())
-                    if len(beam_seq) > 5 and current_word < 1:
-                        new_predict_seq.append([beam_seq, speller_state, score])
-                        continue 
-                    current_embed = self.embedding(current_word)
-                    _, predict_output, tmp_speller_state, att_score = self.run_once(attention, listener_state, listener_len, my_speller_state, current_embed, batch_size)
-                    # record score
-                    raw_predict_output.append(predict_output)
-                    predict_output = F.softmax(predict_output, dim = 1)
-                    #if bid == 0:
-                    #    print(predict_output)
-                    for j in range(self.class_size):
-                        current_word = torch.tensor([j], dtype = torch.long).cuda()
-                        #current_word = torch.argmax(predict_output, dim=1)
-                        current_score = torch.log(predict_output[0,j]) + score
-                        cur_seq = beam_seq + [current_word]
-                        new_predict_seq.append([cur_seq, tmp_speller_state, current_score])
-                new_predict_seq.sort(key=lambda seqs:seqs[2], reverse = True)
-                predict_seq = new_predict_seq[:beam_size]
+                # ERROR
+                raise NotImplementedError
             else:
-                current_embed = self.embedding(current_word)
+                current_embed = current_word # self.embedding(current_word)
                 _, predict_output, speller_state, att_score = self.run_once(attention, listener_state, listener_len, speller_state, current_embed, batch_size)
                 # record score
                 raw_predict_output.append(predict_output)
@@ -81,7 +57,7 @@ class Speller(nn.Module):
                 if train_flag and random.random() < teacher_force_rate and step+1<max_iters:
                     current_word = trancripts[:, step]
                 else:
-                    current_word = torch.argmax(predict_output, dim=1)
+                    current_word = predict_output #torch.argmax(predict_output, dim=1)
 
                 predict_seq.append(current_word)
         
@@ -89,7 +65,7 @@ class Speller(nn.Module):
             predict_seq = predict_seq[0][0]
         # print(predict_seq)
         # exit(0)
-        return torch.stack(raw_predict_output, dim=1), torch.stack(predict_seq, dim=1), attention_scores  # B * L * C, B * L, L * B * S
+        return torch.stack(raw_predict_output, dim=1), torch.stack(predict_seq, dim=1), attention_scores  # B * L * C, B * L * C, L * B * S
 
     def run_once(self, attention, listener_state, listener_len, speller_state, speller_last_output, batch_size):
         '''
